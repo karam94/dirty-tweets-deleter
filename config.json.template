@@ -1,0 +1,6 @@
+{
+  "consumerKey": "YOUR TWITTER APP CONSUMER KEY",
+  "consumerSecret": "YOUR TWITTER APP CONSUMER SECRET",
+  "accessToken": "YOUR TWITTER APP ACCESS TOKEN",
+  "accessSecret": "YOUR TWITTER APP ACCESS SECRET"
+}

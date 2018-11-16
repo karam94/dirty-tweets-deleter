@@ -1,0 +1,21 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Don't commit your tweets.csv or swearwords.csv
+*.csv
+
+# Don't commit IDE stuff
+.idea/
+
+# Don't commit your twitter credentials
+config.json
