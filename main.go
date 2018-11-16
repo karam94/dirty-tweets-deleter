@@ -27,7 +27,8 @@ func main(){
 	setupTwitterClient()
 	tweets := readTweetsCsv()
 	swearWords := readSwearWordsCsv()
-	cleanTweets(tweets, swearWords, deleteBeforeDate, onlySwearwords)
+	tweetsToDelete := cleanTweets(tweets, swearWords, deleteBeforeDate, onlySwearwords)
+	deleteTweets(tweetsToDelete)
 }
 
 func talkToUser() (deleteBeforeDate time.Time, onlySwearwords bool){
@@ -130,8 +131,7 @@ func readSwearWordsCsv() (swearWords [][]string) {
 	return
 }
 
-func cleanTweets(tweets []Tweet, swearWords [][]string, deleteBeforeTime time.Time, onlySwearwords bool) {
-	var _toDeleteTweets []Tweet;
+func cleanTweets(tweets []Tweet, swearWords [][]string, deleteBeforeTime time.Time, onlySwearwords bool) (tweetsToDelete []Tweet){
 
 	for _, tweet := range tweets {
 		if tweet.timestamp != "timestamp" {
@@ -141,27 +141,27 @@ func cleanTweets(tweets []Tweet, swearWords [][]string, deleteBeforeTime time.Ti
 				for _, swearWord := range swearWords[0] {
 					if strings.Contains(strings.ToLower(tweet.text), " "+swearWord+" ") && tweetDate.Before(deleteBeforeTime) {
 						if tweetDate.Before(deleteBeforeTime) {
-							_toDeleteTweets = append(_toDeleteTweets, tweet)
+							tweetsToDelete = append(tweetsToDelete, tweet)
 							break
 						}
 					}
 				}
 			} else {
 				if tweetDate.Before(deleteBeforeTime) {
-					_toDeleteTweets = append(_toDeleteTweets, tweet)
+					tweetsToDelete = append(tweetsToDelete, tweet)
 				}
 			}
 		};
 	}
 
-	deleteTweets(_toDeleteTweets)
+	return
 }
 
-func deleteTweets(toDeleteTweets []Tweet){
+func deleteTweets(tweetsToDelete []Tweet){
 	client := setupTwitterClient()
 
-	for i, tweet := range toDeleteTweets {
-		currentIndex := fmt.Sprintf("%.2f",float64(i)/float64(len(toDeleteTweets)) * 100)
+	for i, tweet := range tweetsToDelete {
+		currentIndex := fmt.Sprintf("%.2f",float64(i)/float64(len(tweetsToDelete)) * 100)
 		id, _ := strconv.ParseInt(tweet.tweet_id, 0, 64)
 		client.Statuses.Destroy(id, nil)
 		fmt.Println("Deleting tweets... " + currentIndex + "%")
