@@ -11,6 +11,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -22,14 +23,15 @@ type Tweet struct {
 }
 
 func main(){
-	deleteBeforeDate := talkToUser()
+	deleteBeforeDate, onlySwearwords := talkToUser()
 	setupTwitterClient()
 	tweets := readTweetsCsv()
 	swearWords := readSwearWordsCsv()
-	cleanTweets(tweets, swearWords, deleteBeforeDate)
+	cleanTweets(tweets, swearWords, deleteBeforeDate, onlySwearwords)
 }
 
-func talkToUser() (deleteBeforeDate time.Time){
+func talkToUser() (deleteBeforeDate time.Time, onlySwearwords bool){
+	onlySwearwords = true
 	scanner := bufio.NewScanner(os.Stdin)
 
 	fmt.Println("Welcome to the Tweet Deleter!")
@@ -40,11 +42,20 @@ func talkToUser() (deleteBeforeDate time.Time){
 	deleteBeforeDate, _ = jodaTime.Parse("dd/MM/yyyy", text)
 	fullDate := jodaTime.Format("dd/MM/yyyy", deleteBeforeDate)
 
-	fmt.Println("All your tweets before the date " + fullDate + " will be PERMANTENTLY DELETED.")
+	fmt.Println("Do you want to delete only tweets with swear words?")
+	fmt.Println("Y/N?")
+	scanner.Scan()
+	text = scanner.Text()
+
+	if strings.ToUpper(scanner.Text()) != "Y" {
+		onlySwearwords = false
+	}
+
+	fmt.Println("All your tweets before the date " + fullDate + " will be PERMANENTLY DELETED.")
 	fmt.Println("Y/N?")
 	scanner.Scan()
 
-	if scanner.Text() != "Y" {
+	if strings.ToUpper(scanner.Text()) != "Y" {
 		os.Exit(3)
 	}
 
@@ -119,18 +130,25 @@ func readSwearWordsCsv() (swearWords [][]string) {
 	return
 }
 
-func cleanTweets(tweets []Tweet, swearWords [][]string, deleteBeforeTime time.Time) {
+func cleanTweets(tweets []Tweet, swearWords [][]string, deleteBeforeTime time.Time, onlySwearwords bool) {
 	var _toDeleteTweets []Tweet;
 
 	for _, tweet := range tweets {
 		if tweet.timestamp != "timestamp" {
 			tweetDate, _ := jodaTime.Parse("yyyy-MM-dd HH:mm:ss Z", tweet.timestamp)
-			for _, swearWord := range swearWords[0] {
-				if strings.Contains(tweet.text, " " + swearWord + " ") && tweetDate.Before(deleteBeforeTime) {
-					if tweetDate.Before(deleteBeforeTime) {
-						_toDeleteTweets = append(_toDeleteTweets, tweet)
-						break
+
+			if onlySwearwords {
+				for _, swearWord := range swearWords[0] {
+					if strings.Contains(strings.ToLower(tweet.text), " "+swearWord+" ") && tweetDate.Before(deleteBeforeTime) {
+						if tweetDate.Before(deleteBeforeTime) {
+							_toDeleteTweets = append(_toDeleteTweets, tweet)
+							break
+						}
 					}
+				}
+			} else {
+				if tweetDate.Before(deleteBeforeTime) {
+					_toDeleteTweets = append(_toDeleteTweets, tweet)
 				}
 			}
 		};
@@ -140,10 +158,14 @@ func cleanTweets(tweets []Tweet, swearWords [][]string, deleteBeforeTime time.Ti
 }
 
 func deleteTweets(toDeleteTweets []Tweet){
-	//client := setupTwitterClient()
-	//
-	//for _, tweet := range toDeleteTweets {
-	//	id, _ := strconv.ParseInt(tweet.tweet_id, 0, 64)
-	//	client.Statuses.Destroy(id, nil)
-	//}
+	client := setupTwitterClient()
+
+	for i, tweet := range toDeleteTweets {
+		currentIndex := fmt.Sprintf("%.2f",float64(i)/float64(len(toDeleteTweets)) * 100)
+		id, _ := strconv.ParseInt(tweet.tweet_id, 0, 64)
+		client.Statuses.Destroy(id, nil)
+		fmt.Println("Deleting tweets... " + currentIndex + "%")
+	}
+
+	fmt.Println("Tweets Deleted.")
 }
