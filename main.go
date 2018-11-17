@@ -69,14 +69,15 @@ func talkToUser() (deleteBeforeDate time.Time, onlySwearwords bool){
 
 	fmt.Println("Welcome to the Tweet Deleter!")
 	fmt.Println("Please enter the date you want to delete tweets before in the format DD/MM/YYYY.")
-
 	scanner.Scan()
 	text := scanner.Text()
+
 	deleteBeforeDate, _ = jodaTime.Parse("dd/MM/yyyy", text)
 	fullDate := jodaTime.Format("dd/MM/yyyy", deleteBeforeDate)
 
 	fmt.Println("Do you want to delete only tweets with swear words?")
 	fmt.Println("Y/N?")
+
 	scanner.Scan()
 
 	if strings.ToUpper(scanner.Text()) != "Y" {
@@ -142,10 +143,8 @@ func cleanTweets(tweets []Tweet, swearWords [][]string, deleteBeforeTime time.Ti
 		if onlySwearwords {
 			for _, swearWord := range swearWords[0] {
 				if strings.Contains(strings.ToLower(tweet.text), " "+swearWord+" ") && tweetDate.Before(deleteBeforeTime) {
-					if tweetDate.Before(deleteBeforeTime) {
-						tweetsToDelete = append(tweetsToDelete, tweet)
-						break
-					}
+					tweetsToDelete = append(tweetsToDelete, tweet)
+					break
 				}
 			}
 		} else {
