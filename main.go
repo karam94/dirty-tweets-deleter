@@ -16,6 +16,13 @@ import (
 	"time"
 )
 
+type Config struct {
+	ConsumerKey string `json:"consumerKey"`
+	ConsumerSecret string `json:"consumerSecret"`
+	AccessToken string `json:"accessToken"`
+	AccessSecret string `json:"accessSecret"`
+}
+
 type Tweet struct {
 	tweet_id string
 	timestamp string
@@ -23,12 +30,37 @@ type Tweet struct {
 }
 
 func main(){
-	deleteBeforeDate, onlySwearwords := talkToUser()
 	setupTwitterClient()
+	deleteBeforeDate, onlySwearwords := talkToUser()
 	tweets := readTweetsCsv()
 	swearWords := readSwearWordsCsv()
 	tweetsToDelete := cleanTweets(tweets, swearWords, deleteBeforeDate, onlySwearwords)
 	deleteTweets(tweetsToDelete)
+}
+
+func setupTwitterClient() (client *twitter.Client){
+	cfg := loadConfiguration()
+	config := oauth1.NewConfig(cfg.ConsumerKey, cfg.ConsumerSecret)
+	token := oauth1.NewToken(cfg.AccessToken, cfg.AccessSecret)
+	httpClient := config.Client(oauth1.NoContext, token)
+	client = twitter.NewClient(httpClient)
+
+	return
+}
+
+func loadConfiguration() Config {
+	var config Config
+
+	configFile, err := os.Open("config.json")
+	defer configFile.Close()
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	jsonParser := json.NewDecoder(configFile)
+	jsonParser.Decode(&config)
+	return config
 }
 
 func talkToUser() (deleteBeforeDate time.Time, onlySwearwords bool){
@@ -46,7 +78,6 @@ func talkToUser() (deleteBeforeDate time.Time, onlySwearwords bool){
 	fmt.Println("Do you want to delete only tweets with swear words?")
 	fmt.Println("Y/N?")
 	scanner.Scan()
-	text = scanner.Text()
 
 	if strings.ToUpper(scanner.Text()) != "Y" {
 		onlySwearwords = false
@@ -66,41 +97,11 @@ func talkToUser() (deleteBeforeDate time.Time, onlySwearwords bool){
 	return
 }
 
-func setupTwitterClient() (client *twitter.Client){
-	cfg := loadConfiguration()
-	config := oauth1.NewConfig(cfg.ConsumerKey, cfg.ConsumerSecret)
-	token := oauth1.NewToken(cfg.AccessToken, cfg.AccessSecret)
-	httpClient := config.Client(oauth1.NoContext, token)
-	client = twitter.NewClient(httpClient)
-
-	return
-}
-
-type Config struct {
-	ConsumerKey string `json:"consumerKey"`
-	ConsumerSecret string `json:"consumerSecret"`
-	AccessToken string `json:"accessToken"`
-	AccessSecret string `json:"accessSecret"`
-}
-
-func loadConfiguration() Config {
-	var config Config
-
-	configFile, err := os.Open("config.json")
-	defer configFile.Close()
-
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-
-	jsonParser := json.NewDecoder(configFile)
-	jsonParser.Decode(&config)
-	return config
-}
-
 func readTweetsCsv() (tweets []Tweet) {
 	csvFile, _ := os.Open("tweets.csv")
 	reader := csv.NewReader(bufio.NewReader(csvFile))
+
+	reader.Read() // skip headers in csv file
 
 	for {
 		line, error := reader.Read()
@@ -135,24 +136,21 @@ func readSwearWordsCsv() (swearWords [][]string) {
 }
 
 func cleanTweets(tweets []Tweet, swearWords [][]string, deleteBeforeTime time.Time, onlySwearwords bool) (tweetsToDelete []Tweet){
-
 	for _, tweet := range tweets {
-		if tweet.timestamp != "timestamp" {
-			tweetDate, _ := jodaTime.Parse("yyyy-MM-dd HH:mm:ss Z", tweet.timestamp)
+		tweetDate, _ := jodaTime.Parse("yyyy-MM-dd HH:mm:ss Z", tweet.timestamp)
 
-			if onlySwearwords {
-				for _, swearWord := range swearWords[0] {
-					if strings.Contains(strings.ToLower(tweet.text), " "+swearWord+" ") && tweetDate.Before(deleteBeforeTime) {
-						if tweetDate.Before(deleteBeforeTime) {
-							tweetsToDelete = append(tweetsToDelete, tweet)
-							break
-						}
+		if onlySwearwords {
+			for _, swearWord := range swearWords[0] {
+				if strings.Contains(strings.ToLower(tweet.text), " "+swearWord+" ") && tweetDate.Before(deleteBeforeTime) {
+					if tweetDate.Before(deleteBeforeTime) {
+						tweetsToDelete = append(tweetsToDelete, tweet)
+						break
 					}
 				}
-			} else {
-				if tweetDate.Before(deleteBeforeTime) {
-					tweetsToDelete = append(tweetsToDelete, tweet)
-				}
+			}
+		} else {
+			if tweetDate.Before(deleteBeforeTime) {
+				tweetsToDelete = append(tweetsToDelete, tweet)
 			}
 		}
 	}
