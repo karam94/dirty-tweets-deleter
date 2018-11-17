@@ -50,11 +50,14 @@ func talkToUser() (deleteBeforeDate time.Time, onlySwearwords bool){
 
 	if strings.ToUpper(scanner.Text()) != "Y" {
 		onlySwearwords = false
+		fmt.Println("All your tweets before the date " + fullDate + " will be PERMANENTLY DELETED.")
+		fmt.Println("Y/N?")
+		scanner.Scan()
+	} else {
+		fmt.Println("All your tweets containing swear words before the date " + fullDate + " will be PERMANENTLY DELETED.")
+		fmt.Println("Y/N?")
+		scanner.Scan()
 	}
-
-	fmt.Println("All your tweets before the date " + fullDate + " will be PERMANENTLY DELETED.")
-	fmt.Println("Y/N?")
-	scanner.Scan()
 
 	if strings.ToUpper(scanner.Text()) != "Y" {
 		os.Exit(3)
@@ -151,7 +154,7 @@ func cleanTweets(tweets []Tweet, swearWords [][]string, deleteBeforeTime time.Ti
 					tweetsToDelete = append(tweetsToDelete, tweet)
 				}
 			}
-		};
+		}
 	}
 
 	return
