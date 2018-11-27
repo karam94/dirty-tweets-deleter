@@ -9,3 +9,14 @@ You need a [Twitter developers account](https://apps.twitter.com/) and a registe
 You can download the archive of your Twitter accounts tweets by going to Twitter > Settings > Account > Content > Request your archive. Place the tweet archive CSV file e-mailed to you in the root folder of your application as "tweets.csv".
 
 If you want to delete only tweets that contain specific words, place your own CSV of words in the root folder as "swearwords.csv". You can download a generic one from [here](http://www.bannedwordlist.com/) if you prefer.
+
+## How to use
+Providing you have [Go](https://golang.org/) installed on your machine, you can compile the code by running `go build` in the root directory which will give you an .exe file to run. E.g.`./main.go` or `./main.exe`. You can also run the unit tests by running `go test` in the root directory.
+
+## dirty-tweets-deleter-web
+As this application was created for learning purposes, I also created a similar web based alternative that can be found [here](https://github.com/karam94/dirty-tweets-deleter-web).
+
+## Credits
+- [go-twitter by dghubble](github.com/dghubble/go-twitter)
+- [Go OAuth1 by dghubble](https://github.com/dghubble/oauth1)
+- [jodaTime by vjeantet](github.com/vjeantet/jodaTime)
