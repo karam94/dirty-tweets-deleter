@@ -17,6 +17,6 @@ Providing you have [Go](https://golang.org/) installed on your machine, you can 
 As this application was created for learning purposes, I also created a similar web based alternative that can be found [here](https://github.com/karam94/dirty-tweets-deleter-web).
 
 ## Credits
-- [go-twitter by dghubble](github.com/dghubble/go-twitter)
+- [go-twitter by dghubble](https://github.com/dghubble/go-twitter)
 - [Go OAuth1 by dghubble](https://github.com/dghubble/oauth1)
-- [jodaTime by vjeantet](github.com/vjeantet/jodaTime)
+- [jodaTime by vjeantet](https://github.com/vjeantet/jodaTime)
